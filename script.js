@@ -118,3 +118,116 @@ function setPagination(content){
         ul.appendChild(li)
     }
 }
+
+function paginationStyle(pageNumber){
+    document.querySelector(`button[value="${pageNumber}"]`).classList.add('pagination-selected');
+}
+
+function openFilter(){
+    document.querySelector('#modal-filter').showModal()
+}
+
+function closeFilter(){
+    document.querySelector('#modal-filter').close()
+}
+
+function formatEditorias(edt){
+    let editorias;
+    const arrayEditorias = edt.split(";");
+    
+    if (arrayEditorias.length > 1){
+        editorias = arrayEditorias.reduce((string, editoria) => '#' + string + ` #${editoria}`);
+    }else{ 
+        editorias = `#${arrayEditorias[0]}`;
+    }
+
+    return editorias;
+}
+
+function formatImage(image){
+    if (image){
+        const imageObj = JSON.parse(image);
+        imageObj.image_intro;
+        return `https://agenciadenoticias.ibge.gov.br/${imageObj.image_intro}`
+    }else{
+        return `https://scontent.fmgf11-1.fna.fbcdn.net/v/t1.6435-9/118691556_3864387280254759_4789927562788712716_n.png?_nc_cat=102&ccb=1-7&_nc_sid=5f2048&_nc_ohc=RXwdqd2-KDAQ7kNvgFc1bgu&_nc_ht=scontent.fmgf11-1.fna&oh=00_AYCtWZoTIvPmqjt39aJmk4-XSxtxTuUXDZOz7JY4t94SJw&oe=66729D6B`
+    }
+}
+
+function formatPublishedDate(dataHora){
+    const dayMs = 86400000;
+
+    const date = new Date(dataHora);
+
+    if (isNaN(date.getTime())) {
+        console.error("Data inválida: ", dataHora);
+        return "Data inválida";
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const diffTime = today.getTime() - date.getTime();
+    const diffDays = Math.floor(diffTime / dayMs);
+
+    if (diffDays === 0) return `Publicado hoje`;
+    else if (diffDays === 1) return `Publicado ontem`;
+    else return `Publicado ${diffDays} dias atrás`;
+}
+
+function submitForm(e){
+    e.preventDefault();
+
+    const input = document.querySelector('#search-bar');
+    const params = new URLSearchParams(location.search);
+
+    if (input.value === "") {
+        params.delete('busca'); 
+        iniciaPadrao(params); 
+    } else {
+        
+        params.set('busca', input.value);
+        params.set('page', 1); 
+    }
+
+    history.replaceState({}, "", `${location.pathname}?${params}`);
+    buscaNoticia();
+}
+
+
+function applyFilters(e) {
+    e.preventDefault();
+    const params = new URLSearchParams(location.search);
+    params.set('page', 1); 
+
+    const filters = ['tipo', 'qtd', 'de', 'ate'];
+
+    filters.forEach((item) => {
+        const itemHTML = document.querySelector(`#${item}`);
+        
+        if (itemHTML.value !== "") {
+            params.set(item, itemHTML.value);
+        } else {
+            params.delete(item); 
+        }
+    });
+
+    history.replaceState({}, "", `${location.pathname}?${params}`);
+    iniciaFiltro(params);
+    
+    closeFilter();
+    buscaNoticia();
+}
+
+function setPage(e){
+
+    const item = e.target;
+    const value = item.textContent;
+
+    const params = new URLSearchParams(location.search);
+    params.set('page', value)
+
+    history.replaceState({}, "", `${location.pathname}?${params}`)   
+    buscaNoticia()
+
+}
